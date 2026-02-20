@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="45%" stop-color="#4b5563"/>
+      <stop offset="100%" stop-color="#9E1B1E"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg2)"/>
+  <g opacity="0.12" fill="#ffffff">
+    <rect x="90" y="90" width="320" height="320" rx="40"/>
+    <rect x="1210" y="100" width="280" height="280" rx="36"/>
+    <rect x="1120" y="620" width="360" height="220" rx="30"/>
+  </g>
+  <rect x="120" y="140" width="1360" height="620" rx="24" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="4"/>
+  <text x="140" y="240" fill="#ffffff" font-family="Arial, sans-serif" font-size="56" font-weight="700">DUMMY HERO IMAGE 2</text>
+  <text x="140" y="320" fill="#ffffff" font-family="Arial, sans-serif" font-size="34">Ganti file ini di:</text>
+  <text x="140" y="380" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="700">wp-content/themes/smansa-theme/images/hero-slide-2.svg</text>
+  <text x="140" y="480" fill="#ffffff" font-family="Arial, sans-serif" font-size="30">Slide ini dipakai untuk uji navigasi slider (dot / prev / next)</text>
+</svg>
