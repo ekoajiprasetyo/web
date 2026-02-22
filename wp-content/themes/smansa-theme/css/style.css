@@ -4241,6 +4241,19 @@ h3 {
 }
 
 @media (max-width: 992px) {
+  /* ---- HEADER: force fixed on mobile ----
+     position:sticky can silently break when any ancestor has overflow, isolation,
+     will-change, or transform. Using fixed is 100% reliable on all mobile browsers.
+     The hero (height:100vh) and .iph-hero (padding-top:6.5rem+) already handle the
+     offset visually; no extra body padding-top is needed. */
+  .header {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
   /* ---- Mobile Nav Overlay ---- */
   .nav-overlay {
     display: none;
