@@ -4475,7 +4475,7 @@ h3 {
   /* 2. Prevent horizontal scroll from slide-in nav */
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip; /* clip does not create scroll container, preserves position:sticky */
   }
 
   /* 3. Clip AOS fade-left/fade-right overflow in all sections on mobile */
