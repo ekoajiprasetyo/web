@@ -678,33 +678,7 @@ add_filter('user_has_cap', function($allcaps) {
     return $allcaps;
 });
 
-// 10. Basic login brute-force protection: track failed attempts in transients
-add_action('wp_login_failed', function($username) {
-    $ip  = sman1_get_client_ip();
-    $key = 'sman1_login_fail_' . md5($ip);
-    $attempts = (int) get_transient($key);
-    set_transient($key, $attempts + 1, 15 * MINUTE_IN_SECONDS); // window: 15 min
-});
-
-add_filter('authenticate', function($user, $username, $password) {
-    if (empty($username) && empty($password)) return $user;
-    $ip  = sman1_get_client_ip();
-    $key = 'sman1_login_fail_' . md5($ip);
-    $attempts = (int) get_transient($key);
-    if ($attempts >= 5) {
-        return new WP_Error('too_many_retries',
-            'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.'
-        );
-    }
-    return $user;
-}, 30, 3);
-
-add_action('wp_login', function() {
-    $ip  = sman1_get_client_ip();
-    $key = 'sman1_login_fail_' . md5($ip);
-    delete_transient($key); // reset counter on successful login
-});
-
+// 10. Basic login brute-force protection: disabled (handled by security plugin)
 function sman1_get_client_ip() {
     foreach (['HTTP_CF_CONNECTING_IP','HTTP_X_FORWARDED_FOR','HTTP_CLIENT_IP','REMOTE_ADDR'] as $key) {
         if (!empty($_SERVER[$key])) {
