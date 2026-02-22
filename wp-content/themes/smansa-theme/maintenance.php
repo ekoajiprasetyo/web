@@ -129,15 +129,23 @@
   @media (max-width: 480px) {
     .maint-logo { flex-direction: column; text-align: center; }
     .maint-logo-text { text-align: center; }
+    .maint-desc { margin-bottom: 1.2rem; }
     /* Force 2 pills on first row, 1 centered on second row */
     .maint-pills {
       display: grid;
       grid-template-columns: 1fr 1fr;
       max-width: 340px;
+      margin-bottom: 1.5rem;
     }
     .maint-pill:last-child {
       grid-column: 1 / -1;
       justify-self: center;
+    }
+    .maint-footer {
+      position: relative;
+      bottom: auto;
+      margin-top: .5rem;
+      padding-bottom: 1rem;
     }
   }
 </style>
