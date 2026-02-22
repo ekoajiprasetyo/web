@@ -73,7 +73,6 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
-  overflow-x: clip; /* prevent horizontal scroll without breaking position:sticky */
 }
 
 body {
@@ -4473,9 +4472,8 @@ h3 {
   }
 
   /* 2. Prevent horizontal scroll from slide-in nav */
-  html,
   body {
-    overflow-x: clip; /* clip does not create scroll container, preserves position:sticky */
+    overflow-x: clip; /* clip on body only — keeps position:fixed and position:sticky working */
   }
 
   /* 3. Clip AOS fade-left/fade-right overflow in all sections on mobile */

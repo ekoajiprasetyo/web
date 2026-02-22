@@ -52,14 +52,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function openMobileMenu() {
         if (!hamburger || !navMenu) return;
-        // Position menu directly below navbar, accounting for sticky scroll position
+        // Position menu directly below sticky navbar using getBoundingClientRect (viewport-relative)
         const headerRect = header.getBoundingClientRect();
         const menuTop = headerRect.bottom;
         navMenu.style.top = menuTop + 'px';
         navMenu.style.height = (window.innerHeight - menuTop) + 'px';
-        if (navOverlay) {
-            navOverlay.style.top = menuTop + 'px';
-        }
+        if (navOverlay) navOverlay.style.top = menuTop + 'px';
         hamburger.classList.add('active');
         navMenu.classList.add('active');
         if (navOverlay) navOverlay.classList.add('active');
@@ -71,12 +69,10 @@ document.addEventListener('DOMContentLoaded', function () {
         hamburger.classList.remove('active');
         navMenu.classList.remove('active');
         if (navOverlay) navOverlay.classList.remove('active');
-        document.body.style.overflow = ''; // clear inline lock; CSS overflow-x:clip stays in effect
-        // Reset dynamic positioning
+        document.body.style.overflow = '';
         navMenu.style.top = '';
         navMenu.style.height = '';
         if (navOverlay) navOverlay.style.top = '';
-        // Reset any open dropdown items
         closeAllDropdowns();
     }
 
