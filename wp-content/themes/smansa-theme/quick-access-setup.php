@@ -131,7 +131,7 @@ add_action( 'acf/init', function () {
                 'ui'            => 1,
                 'ui_on_text'    => 'Ya',
                 'ui_off_text'   => 'Tidak',
-                'instructions'  => 'Aktifkan untuk card dengan latar merah (biasanya PPDB / pendaftaran).',
+                'instructions'  => 'Aktifkan untuk card dengan latar merah (biasanya SPMB / pendaftaran).',
             ),
 
         ),

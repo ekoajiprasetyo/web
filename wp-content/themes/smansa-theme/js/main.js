@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('load', function () {
         setTimeout(() => {
             preloader.classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = ''; // clear inline lock; CSS overflow-x:hidden stays in effect
         }, 2000);
     });
 
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
         hamburger.classList.remove('active');
         navMenu.classList.remove('active');
         if (navOverlay) navOverlay.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = ''; // clear inline lock; CSS overflow-x:hidden stays in effect
         // Reset any open dropdown items
         closeAllDropdowns();
     }
@@ -155,12 +155,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Close all dropdowns on scroll (sticky header keeps panel floating over hero)
     window.addEventListener('scroll', closeAllDropdowns, { passive: true });
 
-    // Close all dropdowns when mouse leaves the header entirely
-    const headerEl = document.getElementById('header');
-    if (headerEl) {
-        headerEl.addEventListener('mouseleave', closeAllDropdowns);
-    }
-
     // Close all dropdowns on Escape key
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeAllDropdowns();
@@ -194,13 +188,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         searchClose.addEventListener('click', function () {
             searchOverlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = ''; // clear inline lock; CSS overflow-x:hidden stays in effect
         });
 
         searchOverlay.addEventListener('click', function (e) {
             if (e.target === this) {
                 this.classList.remove('active');
-                document.body.style.overflow = 'auto';
+                document.body.style.overflow = ''; // clear inline lock; CSS overflow-x:hidden stays in effect
             }
         });
 
@@ -208,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && searchOverlay.classList.contains('active')) {
                 searchOverlay.classList.remove('active');
-                document.body.style.overflow = 'auto';
+                document.body.style.overflow = ''; // clear inline lock; CSS overflow-x:hidden stays in effect
             }
         });
     }
@@ -324,77 +318,270 @@ document.addEventListener('DOMContentLoaded', function () {
     statNumbers.forEach(stat => statsObserver.observe(stat));
 
     // ==================== GALLERY FILTER ====================
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const galleryItems = document.querySelectorAll('.gallery-item');
+    // Handled by inline script in front-page.php (homeGalleryFilter)
 
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function () {
-            filterBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+    function updateGalleryResultCount() {
+        const countEl = document.getElementById('galleryResultCount');
+        if (!countEl) return;
+        const visible = document.querySelectorAll('.gallery-page-item:not(.is-hidden)').length;
+        const total   = document.querySelectorAll('.gallery-page-item').length;
+        countEl.innerHTML = `Menampilkan <strong>${visible}</strong> dari ${total} foto`;
+    }
 
-            const filter = this.getAttribute('data-filter');
+    // ==================== GALLERY PAGE SEARCH ====================
+    // Handled by inline script in page-galeri.php (galleryPageFilter IIFE)
 
-            galleryItems.forEach(item => {
-                const category = item.getAttribute('data-category');
+    // ==================== GALLERY LIGHTBOX ====================
+    (function initLightbox() {
+        const lightbox    = document.getElementById('galleryLightbox');
+        if (!lightbox) return;
 
-                if (filter === 'all' || category === filter) {
-                    item.style.display = 'block';
-                    item.style.animation = 'fadeIn 0.5s ease';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    });
+        const backdrop    = document.getElementById('lightboxBackdrop');
+        const closeBtn    = document.getElementById('lightboxClose');
+        const prevBtn     = document.getElementById('lightboxPrev');
+        const nextBtn     = document.getElementById('lightboxNext');
+        const img         = document.getElementById('lightboxImg');
+        const spinner     = document.getElementById('lightboxSpinner');
+        const captionEl   = document.getElementById('lightboxCaption');
+        const counterEl   = document.getElementById('lightboxCounter');
+        const thumbsEl    = document.getElementById('lightboxThumbs');
 
-    // ==================== COUNTDOWN TIMER ====================
-    const countdown = document.getElementById('countdown');
-
-    if (countdown) {
-        // Build inner HTML if not already present
-        if (!document.getElementById('days')) {
-            countdown.innerHTML = `
-                <div class="countdown-item"><span class="countdown-num" id="days">00</span><span class="countdown-label">Hari</span></div>
-                <div class="countdown-item"><span class="countdown-num" id="hours">00</span><span class="countdown-label">Jam</span></div>
-                <div class="countdown-item"><span class="countdown-num" id="minutes">00</span><span class="countdown-label">Menit</span></div>
-                <div class="countdown-item"><span class="countdown-num" id="seconds">00</span><span class="countdown-label">Detik</span></div>
-            `;
+        // Determine data source: page gallery or home gallery
+        let items = [];
+        if (window.pageGalleryItems && window.pageGalleryItems.length) {
+            items = window._galleryPageVisible || window.pageGalleryItems;
+        } else if (window.homeGalleryItems && window.homeGalleryItems.length) {
+            items = window.homeGalleryItems;
         }
 
-        const daysEl    = document.getElementById('days');
-        const hoursEl   = document.getElementById('hours');
-        const minutesEl = document.getElementById('minutes');
-        const secondsEl = document.getElementById('seconds');
+        let currentIndex = 0;
+        let isOpen = false;
 
-        if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+        // Build thumbnail strip
+        function buildThumbs() {
+            if (!thumbsEl || items.length <= 1) return;
+            thumbsEl.innerHTML = '';
+            items.forEach((item, i) => {
+                const t = document.createElement('div');
+                t.className = 'lightbox-thumb';
+                t.setAttribute('aria-label', `Foto ${i + 1}: ${item.caption}`);
+                t.setAttribute('tabindex', '0');
+                const tImg = document.createElement('img');
+                tImg.src = item.src;
+                tImg.alt = item.caption;
+                tImg.loading = 'lazy';
+                t.appendChild(tImg);
+                t.addEventListener('click', () => goTo(i));
+                t.addEventListener('keydown', e => { if (e.key === 'Enter') goTo(i); });
+                thumbsEl.appendChild(t);
+            });
+        }
 
-        // Set target date (30 days from now for demo)
-        const targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + 30);
-
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const distance = targetDate.getTime() - now;
-
-            const days    = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours   = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            daysEl.textContent    = days.toString().padStart(2, '0');
-            hoursEl.textContent   = hours.toString().padStart(2, '0');
-            minutesEl.textContent = minutes.toString().padStart(2, '0');
-            secondsEl.textContent = seconds.toString().padStart(2, '0');
-
-            if (distance < 0) {
-                clearInterval(countdownInterval);
-                countdown.innerHTML = '<p>Pendaftaran telah ditutup</p>';
+        function updateThumbs(index) {
+            if (!thumbsEl) return;
+            thumbsEl.querySelectorAll('.lightbox-thumb').forEach((t, i) => {
+                t.classList.toggle('active', i === index);
+            });
+            // Scroll active thumb into view
+            const active = thumbsEl.children[index];
+            if (active) {
+                active.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
             }
         }
 
-        updateCountdown();
-        const countdownInterval = setInterval(updateCountdown, 1000);
-    }
+        function showItem(index, direction) {
+            if (!items.length) return;
+            currentIndex = (index + items.length) % items.length;
+            const item = items[currentIndex];
+
+            // Show spinner, hide image
+            if (spinner) { spinner.classList.add('is-visible'); }
+            img.classList.add('is-loading');
+
+            const newImg = new Image();
+            newImg.onload = function () {
+                img.src = newImg.src;
+                img.alt = item.caption;
+                img.classList.remove('is-loading');
+                if (spinner) spinner.classList.remove('is-visible');
+            };
+            newImg.onerror = function () {
+                img.src = item.src; // fallback direct
+                img.classList.remove('is-loading');
+                if (spinner) spinner.classList.remove('is-visible');
+            };
+            newImg.src = item.src;
+
+            if (captionEl) captionEl.textContent = item.caption;
+            if (counterEl) counterEl.textContent = `${currentIndex + 1} / ${items.length}`;
+
+            updateThumbs(currentIndex);
+        }
+
+        function goTo(index) {
+            showItem(index);
+        }
+
+        function openLightbox(index) {
+            if (!lightbox) return;
+            buildThumbs();
+            lightbox.style.display = 'flex';
+            // Force reflow then animate
+            void lightbox.offsetWidth;
+            lightbox.classList.add('is-visible');
+            isOpen = true;
+            document.body.style.overflow = 'hidden';
+            showItem(index);
+            // Focus close button for accessibility
+            setTimeout(() => closeBtn && closeBtn.focus(), 50);
+        }
+
+        function closeLightbox(animate) {
+            if (!isOpen) return;
+            const container = lightbox.querySelector('.lightbox-container');
+            if (container && animate !== false) {
+                container.style.animation = 'lightboxOut 0.25s ease forwards';
+                setTimeout(() => {
+                    container.style.animation = '';
+                    lightbox.classList.remove('is-visible');
+                    lightbox.style.display = 'none';
+                    isOpen = false;
+                    document.body.style.overflow = '';
+                }, 260);
+            } else {
+                lightbox.classList.remove('is-visible');
+                lightbox.style.display = 'none';
+                isOpen = false;
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Attach click to all gallery items (home + page)
+        function attachGalleryClicks() {
+            const allItems = document.querySelectorAll('[data-lightbox-index]');
+            allItems.forEach(el => {
+                // Re-attach cleanly
+                const clone = el.cloneNode(true);
+                el.parentNode.replaceChild(clone, el);
+                clone.addEventListener('click', function () {
+                    const idx = parseInt(this.getAttribute('data-lightbox-index'), 10);
+                    openLightbox(isNaN(idx) ? 0 : idx);
+                });
+                clone.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const idx = parseInt(this.getAttribute('data-lightbox-index'), 10);
+                        openLightbox(isNaN(idx) ? 0 : idx);
+                    }
+                });
+            });
+
+            // Sync filterBtns to also update visible items in lightbox (page gallery)
+            const pageFilerBtns = document.querySelectorAll('.gallery-page-filter .filter-btn');
+            if (pageFilerBtns.length) {
+                pageFilerBtns.forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        // Small delay to let inline IIFE apply visibility first
+                        setTimeout(() => {
+                            items = window._galleryPageVisible || window.pageGalleryItems || [];
+                            buildThumbs();
+                        }, 50);
+                    });
+                });
+            }
+        }
+
+        closeBtn && closeBtn.addEventListener('click', () => closeLightbox(true));
+        backdrop && backdrop.addEventListener('click', () => closeLightbox(true));
+        prevBtn  && prevBtn.addEventListener('click', () => showItem(currentIndex - 1));
+        nextBtn  && nextBtn.addEventListener('click', () => showItem(currentIndex + 1));
+
+        // Keyboard
+        document.addEventListener('keydown', function (e) {
+            if (!isOpen) return;
+            if (e.key === 'Escape')      closeLightbox(true);
+            if (e.key === 'ArrowLeft')   showItem(currentIndex - 1);
+            if (e.key === 'ArrowRight')  showItem(currentIndex + 1);
+        });
+
+        // Touch swipe
+        let touchStartX = null;
+        lightbox && lightbox.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+        lightbox && lightbox.addEventListener('touchend', e => {
+            if (touchStartX === null) return;
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 50) {
+                dx < 0 ? showItem(currentIndex + 1) : showItem(currentIndex - 1);
+            }
+            touchStartX = null;
+        }, { passive: true });
+
+        // Init
+        attachGalleryClicks();
+
+        // Expose for inline page scripts
+        window._openGalleryLightbox = openLightbox;
+    })();
+
+    // ==================== SPMB COUNTDOWN TIMER ====================
+    (function initSpmbCountdown() {
+        const timerWrap = document.getElementById('spmbCountdown');
+        if (!timerWrap) return;
+
+        const cfg = window.spmbConfig || {};
+
+        // If registration is already closed, show closed message
+        if (cfg.isClosed) {
+            timerWrap.innerHTML = '<p style="opacity:.7;font-size:.9rem;">Pendaftaran telah ditutup</p>';
+            return;
+        }
+
+        // Resolve target date: from PHP config or fallback to 30 days from now
+        let targetMs = cfg.targetDate && cfg.targetDate > 0
+            ? cfg.targetDate
+            : Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+        const daysEl    = document.getElementById('spmbDays');
+        const hoursEl   = document.getElementById('spmbHours');
+        const minutesEl = document.getElementById('spmbMinutes');
+        const secondsEl = document.getElementById('spmbSeconds');
+
+        if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
+        // Flip animation helper
+        function flashFlip(el, newVal) {
+            if (el.textContent !== newVal) {
+                el.classList.add('spmb-flip');
+                el.textContent = newVal;
+                setTimeout(function () { el.classList.remove('spmb-flip'); }, 180);
+            }
+        }
+
+        function tick() {
+            const distance = targetMs - Date.now();
+
+            if (distance <= 0) {
+                clearInterval(countdownInterval);
+                timerWrap.innerHTML = '<p style="opacity:.7;font-size:.9rem;color:#4ade80;">&#10003; Pendaftaran Sedang Dibuka!</p>';
+                return;
+            }
+
+            const d = Math.floor(distance / 86400000);
+            const h = Math.floor((distance % 86400000) / 3600000);
+            const m = Math.floor((distance % 3600000) / 60000);
+            const s = Math.floor((distance % 60000) / 1000);
+
+            flashFlip(daysEl,    d.toString().padStart(2, '0'));
+            flashFlip(hoursEl,   h.toString().padStart(2, '0'));
+            flashFlip(minutesEl, m.toString().padStart(2, '0'));
+            flashFlip(secondsEl, s.toString().padStart(2, '0'));
+        }
+
+        tick();
+        const countdownInterval = setInterval(tick, 1000);
+    })();
 
     // ==================== BACK TO TOP ====================
     const backToTop = document.getElementById('backToTop');

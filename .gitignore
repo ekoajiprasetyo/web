@@ -1,0 +1,39 @@
+# ==================== WordPress Core ====================
+# Track core files only if you manage WP version manually.
+# Comment out the lines below if you want to track WP core.
+/wp-admin/
+/wp-includes/
+
+# ==================== SENSITIVE — NEVER COMMIT ====================
+wp-config.php
+wp-config-sample.php
+.env
+*.env
+
+# ==================== Uploads (binary media) ====================
+/wp-content/uploads/
+
+# ==================== Cache & Logs ====================
+/wp-content/cache/
+/wp-content/wflogs/
+/wp-content/upgrade/
+*.log
+debug.log
+/wp-content/debug.log
+
+# ==================== Plugin-generated / runtime ====================
+/wp-content/advanced-cache.php
+/wp-content/wp-cache-config.php
+/wp-content/object-cache.php
+
+# ==================== OS & Editor ====================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+node_modules/
+
+# ==================== Build artifacts ====================
+*.map

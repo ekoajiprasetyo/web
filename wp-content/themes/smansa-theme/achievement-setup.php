@@ -28,7 +28,7 @@ function smansa_register_achievement_cpt() {
         'rewrite'       => array( 'slug' => 'prestasi' ),
         'menu_position' => 23,
         'menu_icon'     => 'dashicons-awards',
-        'supports'      => array( 'title', 'page-attributes' ),
+        'supports'      => array( 'title', 'thumbnail', 'page-attributes' ),
         'show_in_rest'  => false,
     ) );
 }
@@ -143,6 +143,16 @@ function smansa_register_achievement_acf() {
                 'placeholder'   => '2025',
                 'default_value' => date( 'Y' ),
             ),
+            array(
+                'key'         => 'field_ach_instagram_url',
+                'label'       => 'Link Post Instagram',
+                'name'        => 'ach_instagram_url',
+                'type'        => 'url',
+                'required'    => 0,
+                'placeholder' => 'https://www.instagram.com/p/XXXXX/',
+                'instructions'=> 'Opsional. Tempel URL postingan Instagram yang menampilkan prestasi ini. Akan ditampilkan sebagai tombol di kartu prestasi.',
+                'wrapper'     => array( 'width' => '100' ),
+            ),
         ),
         'location' => array(
             array(
@@ -159,7 +169,8 @@ function smansa_register_achievement_acf() {
         'hide_on_screen'        => array(
             'the_content', 'excerpt', 'discussion', 'comments', 'revisions',
             'slug', 'author', 'format', 'categories', 'tags',
-            'send-trackbacks', 'featured_image',
+            'send-trackbacks',
+            /* featured_image intentionally shown — used as card thumbnail */
         ),
     ) );
 }

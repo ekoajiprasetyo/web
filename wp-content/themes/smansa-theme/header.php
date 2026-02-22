@@ -11,7 +11,7 @@
     <!-- Meta Tags -->
     <meta name="description" content="<?php bloginfo('description'); ?>">
     
-    <!-- Favicon is handled by WordPress Customizer (Site Identity) -->
+    <!-- Favicon: dikelola via functions.php — pakai site icon, custom logo, atau images/logo.png -->
 
     <?php wp_head(); ?>
 </head>
@@ -141,9 +141,24 @@
                     <button class="search-btn" id="searchBtn">
                         <i class="fas fa-search"></i>
                     </button>
-                    <a href="portal.html" class="btn btn-sm btn-accent btn-portal">
-                        <i class="fas fa-sign-in-alt"></i> <span>Portal</span>
+                    <?php
+                    // Portal button — configurable via Customizer → Tombol Portal
+                    $portal_page_id = (int) get_theme_mod('portal_btn_page_id', '');
+                    $portal_url     = $portal_page_id
+                        ? get_permalink($portal_page_id)
+                        : get_theme_mod('portal_btn_url', '');
+                    $portal_label   = get_theme_mod('portal_btn_label', 'Portal');
+                    $portal_icon    = get_theme_mod('portal_btn_icon', 'fas fa-sign-in-alt');
+                    $portal_new_tab = get_theme_mod('portal_btn_new_tab', '1');
+                    if ($portal_url) :
+                    ?>
+                    <a href="<?php echo esc_url($portal_url); ?>"
+                       class="btn btn-sm btn-portal"
+                       <?php if ($portal_new_tab) echo 'target="_blank" rel="noopener"'; ?>>
+                        <i class="<?php echo esc_attr($portal_icon); ?>"></i>
+                        <span><?php echo esc_html($portal_label); ?></span>
                     </a>
+                    <?php endif; ?>
                     
                     <!-- Hamburger -->
                     <div class="hamburger" id="hamburger">
@@ -166,7 +181,7 @@
             </form>
             <div class="search-suggestions">
                 <span>Pencarian Populer:</span>
-                <a href="#">PPDB 2026</a>
+                <a href="#spmb">SPMB 2026</a>
                 <a href="#">Prestasi</a>
                 <a href="#">Ekstrakurikuler</a>
                 <a href="#">Agenda</a>

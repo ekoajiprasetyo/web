@@ -14,17 +14,18 @@
     // Fallback slide when no CPT posts exist yet
     $fallback_slides = array(
         array(
-            'badge_icon' => 'fas fa-school',
-            'badge_text' => 'Website Resmi SMAN 1 Purwokerto',
-            'title'      => get_theme_mod( 'hero_title', 'Mewujudkan Generasi Emas Berkarakter Pancasila' ),
-            'subtitle'   => get_theme_mod( 'hero_subtitle', 'SMAN 1 Purwokerto berkomitmen mencetak lulusan unggul dalam prestasi, luhur dalam budi pekerti, dan siap bersaing di era global.' ),
-            'bg_url'     => get_template_directory_uri() . '/images/hero-slide-1.svg',
-            'btn1_label' => 'Jelajahi Profil',
-            'btn1_url'   => '#profil',
-            'btn1_icon'  => 'fas fa-arrow-right',
-            'btn2_label' => 'Hubungi Kami',
-            'btn2_url'   => '#kontak',
-            'btn2_icon'  => 'fas fa-envelope',
+            'badge_icon'    => 'fas fa-school',
+            'badge_text'    => 'Website Resmi SMAN 1 Purwokerto',
+            'title'         => get_theme_mod( 'hero_title', 'Mewujudkan Generasi Emas Berkarakter Pancasila' ),
+            'title_accent'  => 'Generasi Emas',
+            'subtitle'      => get_theme_mod( 'hero_subtitle', 'SMAN 1 Purwokerto berkomitmen mencetak lulusan unggul dalam prestasi, luhur dalam budi pekerti, dan siap bersaing di era global.' ),
+            'bg_url'        => get_template_directory_uri() . '/images/hero-slide-1.svg',
+            'btn1_label'    => 'Jelajahi Profil',
+            'btn1_url'      => '#profil',
+            'btn1_icon'     => 'fas fa-arrow-right',
+            'btn2_label'    => 'Hubungi Kami',
+            'btn2_url'      => '#kontak',
+            'btn2_icon'     => 'fas fa-envelope',
         ),
     );
 
@@ -37,18 +38,30 @@
             if ( ! $bg_url ) {
                 $bg_url = get_template_directory_uri() . '/images/hero-slide-1.svg';
             }
+
+            $btn1_source = get_field( 'slide_btn1_link_source' ) ?: 'url';
+            $btn1_manual = get_field( 'slide_btn1_url' );
+            $btn1_page   = get_field( 'slide_btn1_page' );
+            $btn1_url    = ( $btn1_source === 'page' && ! empty( $btn1_page ) ) ? $btn1_page : $btn1_manual;
+
+            $btn2_source = get_field( 'slide_btn2_link_source' ) ?: 'url';
+            $btn2_manual = get_field( 'slide_btn2_url' );
+            $btn2_page   = get_field( 'slide_btn2_page' );
+            $btn2_url    = ( $btn2_source === 'page' && ! empty( $btn2_page ) ) ? $btn2_page : $btn2_manual;
+
             $slides[] = array(
-                'badge_icon' => get_field( 'slide_badge_icon' ) ?: 'fas fa-school',
-                'badge_text' => get_field( 'slide_badge_text' ) ?: 'Website Resmi SMAN 1 Purwokerto',
-                'title'      => get_field( 'slide_title' )      ?: get_the_title(),
-                'subtitle'   => get_field( 'slide_subtitle' )   ?: '',
-                'bg_url'     => $bg_url,
-                'btn1_label' => get_field( 'slide_btn1_label' ) ?: 'Jelajahi Profil',
-                'btn1_url'   => get_field( 'slide_btn1_url' )   ?: '#profil',
-                'btn1_icon'  => get_field( 'slide_btn1_icon' )  ?: 'fas fa-arrow-right',
-                'btn2_label' => get_field( 'slide_btn2_label' ) ?: '',
-                'btn2_url'   => get_field( 'slide_btn2_url' )   ?: '',
-                'btn2_icon'  => get_field( 'slide_btn2_icon' )  ?: 'fas fa-envelope',
+                'badge_icon'   => get_field( 'slide_badge_icon' )     ?: 'fas fa-school',
+                'badge_text'   => get_field( 'slide_badge_text' )     ?: 'Website Resmi SMAN 1 Purwokerto',
+                'title'        => get_field( 'slide_title' )           ?: get_the_title(),
+                'title_accent' => (string) get_field( 'slide_title_accent' ),
+                'subtitle'     => get_field( 'slide_subtitle' )        ?: '',
+                'bg_url'       => $bg_url,
+                'btn1_label'   => get_field( 'slide_btn1_label' )      ?: 'Jelajahi Profil',
+                'btn1_url'     => $btn1_url ?: '#profil',
+                'btn1_icon'    => get_field( 'slide_btn1_icon' )       ?: 'fas fa-arrow-right',
+                'btn2_label'   => get_field( 'slide_btn2_label' )      ?: '',
+                'btn2_url'     => $btn2_url ?: '',
+                'btn2_icon'    => get_field( 'slide_btn2_icon' )       ?: 'fas fa-envelope',
             );
         }
         wp_reset_postdata();
@@ -79,7 +92,19 @@
                             <?php echo esc_html( $slide['badge_text'] ); ?>
                         </span>
                         <?php endif; ?>
-                        <h1><?php echo esc_html( $slide['title'] ); ?></h1>
+                        <h1><?php
+                            $h1_title  = esc_html( $slide['title'] );
+                            $h1_accent = esc_html( trim( $slide['title_accent'] ?? '' ) );
+                            if ( $h1_accent !== '' && strpos( $h1_title, $h1_accent ) !== false ) {
+                                echo str_replace(
+                                    $h1_accent,
+                                    '<span class="hero-title-accent">' . $h1_accent . '</span>',
+                                    $h1_title
+                                );
+                            } else {
+                                echo $h1_title;
+                            }
+                        ?></h1>
                         <?php if ( $slide['subtitle'] ) : ?>
                         <p><?php echo esc_html( $slide['subtitle'] ); ?></p>
                         <?php endif; ?>
@@ -168,14 +193,23 @@
     $about_text           = get_field('about_text')           ?: 'SMA Negeri 1 Purwokerto berdiri sejak tahun 1960 dan menjadi salah satu sekolah unggulan di Jawa Tengah dengan komitmen menghadirkan pendidikan berkualitas dan berdaya saing global.';
     $about_image          = get_field('about_image')          ?: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&h=450&fit=crop';
     $about_video_url      = get_field('about_video_url')      ?: '';
+    $about_video_embed    = sman1_video_embed_url( $about_video_url );
     $about_badge_number   = get_field('about_badge_number')   ?: 'A';
     $about_badge_text     = get_field('about_badge_text')     ?: 'Akreditasi';
+    // Button 1 — resolve URL from source selector (url manual vs pilih halaman)
     $about_btn1_label     = get_field('about_btn1_label')     ?: 'Selengkapnya';
-    $about_btn1_url       = get_field('about_btn1_url')       ?: '#profil';
     $about_btn1_icon      = get_field('about_btn1_icon')      ?: 'fas fa-arrow-right';
+    $_abt1_source         = get_field('about_btn1_link_source') ?: 'url';
+    $_abt1_manual         = get_field('about_btn1_url');
+    $_abt1_page           = get_field('about_btn1_page');
+    $about_btn1_url       = ( $_abt1_source === 'page' && ! empty( $_abt1_page ) ) ? $_abt1_page : ( $_abt1_manual ?: '#profil' );
+    // Button 2
     $about_btn2_label     = get_field('about_btn2_label')     ?: 'Visi & Misi';
-    $about_btn2_url       = get_field('about_btn2_url')       ?: '#visi-misi';
     $about_btn2_icon      = get_field('about_btn2_icon')      ?: '';
+    $_abt2_source         = get_field('about_btn2_link_source') ?: 'url';
+    $_abt2_manual         = get_field('about_btn2_url');
+    $_abt2_page           = get_field('about_btn2_page');
+    $about_btn2_url       = ( $_abt2_source === 'page' && ! empty( $_abt2_page ) ) ? $_abt2_page : ( $_abt2_manual ?: '#visi-misi' );
 
     // Build features array from 6 fixed ACF fields (ACF Free compatible)
     $feat_defaults = array(
@@ -210,11 +244,13 @@
                 <div class="about-image" data-aos="fade-right">
                     <div class="about-image-wrapper">
                         <img src="<?php echo esc_url( $about_image ); ?>" alt="<?php bloginfo('name'); ?>">
-                        <?php if ( $about_video_url ) : ?>
-                        <a class="about-image-overlay" href="<?php echo esc_url( $about_video_url ); ?>" target="_blank" rel="noopener">
+                        <?php if ( $about_video_embed ) : ?>
+                        <button class="about-image-overlay" type="button"
+                            data-video-embed="<?php echo esc_attr( $about_video_embed ); ?>"
+                            aria-label="Putar Video Profil">
                             <div class="play-btn"><i class="fas fa-play"></i></div>
                             <span>Video Profil</span>
-                        </a>
+                        </button>
                         <?php endif; ?>
                     </div>
                     <div class="about-badge">
@@ -272,6 +308,67 @@
         </div>
     </section>
 
+    <!-- ── Video Profil Modal ── -->
+    <div id="video-modal" class="vmodal" role="dialog" aria-modal="true" aria-label="Video Profil" hidden>
+        <div class="vmodal-backdrop"></div>
+        <div class="vmodal-box">
+            <button class="vmodal-close" type="button" aria-label="Tutup video">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="vmodal-ratio">
+                <iframe id="video-modal-iframe"
+                    src=""
+                    title="Video Profil SMAN 1 Purwokerto"
+                    frameborder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen
+                ></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var modal   = document.getElementById('video-modal');
+        var iframe  = document.getElementById('video-modal-iframe');
+        var trigger = document.querySelector('.about-image-overlay[data-video-embed]');
+        var closeBtn;
+
+        if (!modal || !iframe || !trigger) return;
+        closeBtn = modal.querySelector('.vmodal-close');
+
+        function openModal(embedUrl) {
+            iframe.src = embedUrl + (embedUrl.indexOf('?') >= 0 ? '&' : '?') + 'autoplay=1&rel=0';
+            modal.hidden = false;
+            document.body.classList.add('vmodal-open');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closeModal() {
+            iframe.src = '';
+            modal.hidden = true;
+            document.body.classList.remove('vmodal-open');
+            trigger.focus();
+        }
+
+        trigger.addEventListener('click', function () {
+            openModal(this.dataset.videoEmbed);
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+
+        modal.querySelector('.vmodal-backdrop').addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+    })();
+    </script>
+
     <!-- QUICK ACCESS (Static for now, editable via Menu or ACF) -->
     <?php
     // --- Quick Access Cards: query CPT, fall back to defaults if empty ---
@@ -303,7 +400,7 @@
             array( 'icon' => 'fas fa-user-circle',  'title' => 'Portal Siswa', 'desc' => 'Data & rapor digital',         'url' => '#', 'highlight' => false ),
             array( 'icon' => 'fas fa-medal',        'title' => 'Prestasi',     'desc' => 'Rekam jejak prestasi',         'url' => '#', 'highlight' => false ),
             array( 'icon' => 'fas fa-book-reader',  'title' => 'Perpustakaan', 'desc' => 'Katalog & peminjaman',         'url' => '#', 'highlight' => false ),
-            array( 'icon' => 'fas fa-user-plus',    'title' => 'PPDB Online',  'desc' => 'Pendaftaran siswa baru',       'url' => '#', 'highlight' => true  ),
+            array( 'icon' => 'fas fa-user-plus',    'title' => 'SPMB Online',  'desc' => 'Pendaftaran Murid Baru',       'url' => get_option( 'sman1_spmb_url', '#spmb' ), 'highlight' => true  ),
         );
     }
     ?>
@@ -346,6 +443,7 @@
         'akademik'    => 'fas fa-book',
         'kegiatan'    => 'fas fa-flag',
         'ppdb'        => 'fas fa-user-plus',
+        'spmb'        => 'fas fa-user-plus',
         'ekstrakurikuler' => 'fas fa-users',
         'berita'      => 'fas fa-newspaper',
         'uncategorized' => 'fas fa-newspaper',
@@ -480,7 +578,7 @@
             (object)array('ID'=>0,'post_title'=>'Sekolah Prestasi',                          'sp_icon'=>'fas fa-trophy',         'sp_desc'=>'Membina dan mengembangkan potensi siswa di bidang akademik, seni, dan olahraga untuk meraih prestasi membanggakan di tingkat nasional maupun internasional.','sp_url'=>'#','sp_featured'=>false),
             (object)array('ID'=>0,'post_title'=>'Gerakan Kepeloporan',                       'sp_icon'=>'fas fa-rocket',         'sp_desc'=>'Menumbuhkan jiwa pemimpin, keberanian berinovasi, dan semangat menjadi pelopor perubahan positif bagi lingkungan, masyarakat, dan bangsa.',              'sp_url'=>'#','sp_featured'=>false),
             (object)array('ID'=>0,'post_title'=>'Gerakan Literasi',                          'sp_icon'=>'fas fa-book-open',      'sp_desc'=>'Membangun budaya baca-tulis yang kuat melalui membaca harian, pojok buku, dan penulisan kreatif untuk meningkatkan kemampuan literasi siswa.',           'sp_url'=>'#','sp_featured'=>false),
-            (object)array('ID'=>0,'post_title'=>'Gerakan Pembiasaan Anak Indonesia Sehat',   'sp_icon'=>'fas fa-seedling',       'sp_desc'=>'Menanamkan kebiasaan hidup sehat sejak dini melalui olahraga rutin, pola makan bergizi, dan kesehatan mental sebagai investasi terbaik untuk masa depan.','sp_url'=>'#','sp_featured'=>false),
+            (object)array('ID'=>0,'post_title'=>'Gerakan Pembiasaan Anak Indonesia Hebat',   'sp_icon'=>'fas fa-seedling',       'sp_desc'=>'Menanamkan kebiasaan hidup sehat sejak dini melalui olahraga rutin, pola makan bergizi, dan kesehatan mental sebagai investasi terbaik untuk masa depan.','sp_url'=>'#','sp_featured'=>false),
         );
         // Mark as fallback so we read dummy fields directly
         $prog_is_fallback = true;
@@ -687,6 +785,46 @@
     </section>
 
     <!-- ===================== GALLERY SECTION ===================== -->
+    <?php
+    $gallery_page_id  = intval(get_option('sman1_gallery_page_id', 0));
+    $gallery_page_url = $gallery_page_id ? get_permalink($gallery_page_id) : '#';
+
+    // Fetch ALL published gallery items so every category filter works correctly.
+    $gallery_limit = intval(get_option('sman1_gallery_home_limit', 6));
+    $gallery_query = new WP_Query([
+        'post_type'      => 'gallery_item',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ]);
+
+    // Collect available categories (only terms that actually have posts).
+    $gallery_terms = get_terms([
+        'taxonomy'   => 'gallery_category',
+        'hide_empty' => true,
+        'orderby'    => 'name',
+        'order'      => 'ASC',
+    ]);
+
+    // Build lightbox data array for JS
+    $lightbox_items = [];
+    if ($gallery_query->have_posts()) {
+        while ($gallery_query->have_posts()) {
+            $gallery_query->the_post();
+            $full_src   = get_the_post_thumbnail_url(get_the_ID(), 'full');
+            $caption    = get_post_meta(get_the_ID(), '_gallery_caption', true) ?: get_the_title();
+            $terms      = get_the_terms(get_the_ID(), 'gallery_category');
+            $cat_slug   = ($terms && ! is_wp_error($terms)) ? $terms[0]->slug : 'all';
+            $lightbox_items[] = [
+                'src'     => $full_src,
+                'caption' => $caption,
+                'cat'     => $cat_slug,
+            ];
+        }
+        wp_reset_postdata();
+    }
+    ?>
     <section class="gallery-section section" id="gallery">
         <div class="container">
             <div class="section-header text-center" data-aos="fade-up">
@@ -696,101 +834,403 @@
             </div>
             <div class="gallery-filter" data-aos="fade-up">
                 <button class="filter-btn active" data-filter="all">Semua</button>
-                <button class="filter-btn" data-filter="academic">Akademik</button>
-                <button class="filter-btn" data-filter="sports">Olahraga</button>
-                <button class="filter-btn" data-filter="arts">Seni</button>
-                <button class="filter-btn" data-filter="events">Kegiatan</button>
+                <?php if (! is_wp_error($gallery_terms) && ! empty($gallery_terms)) :
+                    foreach ($gallery_terms as $term) : ?>
+                <button class="filter-btn" data-filter="<?php echo esc_attr($term->slug); ?>">
+                    <?php echo esc_html($term->name); ?>
+                </button>
+                <?php   endforeach;
+                endif; ?>
             </div>
-            <div class="gallery-grid" data-aos="fade-up">
-                <div class="gallery-item" data-category="academic">
-                    <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop" alt="Gallery">
-                    <div class="gallery-overlay"><i class="fas fa-search-plus"></i><span>Olimpiade Sains</span></div>
-                </div>
-                <div class="gallery-item large" data-category="events">
-                    <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&h=400&fit=crop" alt="Gallery">
-                    <div class="gallery-overlay"><i class="fas fa-search-plus"></i><span>Wisuda Angkatan 2025</span></div>
-                </div>
-                <div class="gallery-item" data-category="sports">
-                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=300&fit=crop" alt="Gallery">
-                    <div class="gallery-overlay"><i class="fas fa-search-plus"></i><span>Turnamen Basket</span></div>
-                </div>
-                <div class="gallery-item" data-category="arts">
-                    <img src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=300&fit=crop" alt="Gallery">
-                    <div class="gallery-overlay"><i class="fas fa-search-plus"></i><span>Pentas Seni</span></div>
-                </div>
-                <div class="gallery-item" data-category="events">
-                    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=300&fit=crop" alt="Gallery">
-                    <div class="gallery-overlay"><i class="fas fa-search-plus"></i><span>MPLS 2025</span></div>
-                </div>
-                <div class="gallery-item" data-category="academic">
-                    <img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&h=300&fit=crop" alt="Gallery">
-                    <div class="gallery-overlay"><i class="fas fa-search-plus"></i><span>Laboratorium</span></div>
-                </div>
+
+            <div class="gallery-grid" data-aos="fade-up" id="homeGalleryGrid">
+                <?php if ($gallery_query->post_count > 0) :
+                    $gallery_query->rewind_posts();
+                    $idx = 0;
+                    while ($gallery_query->have_posts()) :
+                        $gallery_query->the_post();
+                        $thumb_src  = get_the_post_thumbnail_url(get_the_ID(), 'large');
+                        $caption    = get_post_meta(get_the_ID(), '_gallery_caption', true) ?: get_the_title();
+                        $terms      = get_the_terms(get_the_ID(), 'gallery_category');
+                        $cat_slug   = ($terms && ! is_wp_error($terms)) ? $terms[0]->slug : '';
+                        $is_large   = get_post_meta(get_the_ID(), '_gallery_featured', true) === '1';
+                        $large_cls  = $is_large ? ' large' : '';
+                ?>
+                        <div class="gallery-item<?php echo $large_cls; ?>"
+                             data-category="<?php echo esc_attr($cat_slug); ?>"
+                             data-featured="<?php echo $is_large ? '1' : '0'; ?>"
+                             data-lightbox-index="<?php echo $idx; ?>"
+                             role="button"
+                             tabindex="0"
+                             aria-label="Buka preview: <?php echo esc_attr($caption); ?>">
+                            <?php if ($thumb_src) : ?>
+                                <img src="<?php echo esc_url($thumb_src); ?>"
+                                     alt="<?php echo esc_attr($caption); ?>"
+                                     loading="lazy">
+                            <?php else : ?>
+                                <div style="background:var(--gray-200);width:100%;min-height:200px;"></div>
+                            <?php endif; ?>
+                            <div class="gallery-overlay">
+                                <i class="fas fa-expand-alt"></i>
+                                <span><?php echo esc_html($caption); ?></span>
+                            </div>
+                        </div>
+                <?php   $idx++;
+                    endwhile;
+                    wp_reset_postdata();
+                else : ?>
+                    <!-- Empty state: no gallery items in WP Admin yet -->
+                    <div class="gallery-empty-state" style="grid-column:1/-1;padding:3rem 1rem;text-align:center;color:var(--gray-400);">
+                        <i class="fas fa-images" style="font-size:3rem;display:block;margin-bottom:1rem;color:var(--gray-300);"></i>
+                        <p style="font-size:0.95rem;">Belum ada foto. Tambahkan melalui <strong>Galeri</strong> di WordPress Admin.</p>
+                    </div>
+                <?php endif; ?>
             </div>
+
             <div class="text-center" style="margin-top: 3rem;">
-                <a href="#" class="btn btn-primary"><i class="fas fa-images"></i> Lihat Semua Galeri</a>
+                <a href="<?php echo esc_url($gallery_page_url); ?>" class="btn btn-primary">
+                    <i class="fas fa-images"></i> Lihat Semua Galeri
+                </a>
             </div>
         </div>
     </section>
 
+    <?php if (! empty($lightbox_items)) : ?>
+    <script>
+        window.homeGalleryItems = <?php echo json_encode($lightbox_items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    </script>
+    <?php endif; ?>
+
+    <script>
+    (function () {
+        var HOME_GAL_LIMIT = <?php echo (int) $gallery_limit; ?>;
+
+        function applyGalleryFilter(filter) {
+            var grid  = document.getElementById('homeGalleryGrid');
+            if (!grid) return;
+            var items = Array.prototype.slice.call(grid.querySelectorAll('.gallery-item'));
+            var shown = 0;
+
+            items.forEach(function (item) {
+                var cat   = item.getAttribute('data-category') || '';
+                var match = (filter === 'all' || cat === filter);
+                if (match && shown < HOME_GAL_LIMIT) {
+                    item.classList.remove('gal-hidden');
+                    shown++;
+                } else {
+                    item.classList.add('gal-hidden');
+                }
+            });
+        }
+
+        function initHomeGallery() {
+            // Apply initial "Semua" limit
+            applyGalleryFilter('all');
+
+            var btns = document.querySelectorAll('.gallery-filter .filter-btn');
+            btns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    btns.forEach(function (b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    applyGalleryFilter(this.getAttribute('data-filter'));
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHomeGallery);
+        } else {
+            initHomeGallery();
+        }
+    })();
+    </script>
+
     <!-- ===================== ALUMNI SLIDER SECTION ===================== -->
+    <?php
+    $uni_logo_w = max(80, min(260, intval(get_option('sman1_uni_logo_width', 140))));
+    $uni_logo_h = max(40, min(180, intval(get_option('sman1_uni_logo_height', 80))));
+
+    $universities_query = new WP_Query([
+        'post_type'      => 'accepted_university',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => [
+            'menu_order' => 'ASC',
+            'title'      => 'ASC',
+        ],
+    ]);
+    ?>
+    <style>
+        .alumni-section {
+            --uni-logo-w: <?php echo esc_attr($uni_logo_w); ?>px;
+            --uni-logo-h: <?php echo esc_attr($uni_logo_h); ?>px;
+        }
+    </style>
     <section class="alumni-section section" id="alumni">
         <div class="container">
             <div class="alumni-header" data-aos="fade-up">
                 <div class="section-subtitle"><i class="fas fa-user-graduate"></i><span>Jejak Alumni</span></div>
                 <h2 class="section-title">Diterima di <span class="text-accent">Universitas Terbaik</span></h2>
-                <p>Lulusan kami melanjutkan pendidikan di berbagai perguruan tinggi terkemuka di Indonesia.</p>
+                <p>Lulusan kami melanjutkan pendidikan di berbagai perguruan tinggi terkemuka di Indonesia dan dunia</p>
             </div>
             <div class="alumni-slider-container">
                 <div class="alumni-track">
-                    <div class="uni-item"><img src="https://placehold.co/150x150/FFD700/000000?text=UI" alt="UI" class="uni-logo"><span class="uni-name">Univ. Indonesia</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/f3f4f6/1f2937?text=UGM" alt="UGM" class="uni-logo"><span class="uni-name">UGM</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/2563eb/ffffff?text=ITB" alt="ITB" class="uni-logo"><span class="uni-name">ITB</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/1e3a8a/ffffff?text=UNDIP" alt="UNDIP" class="uni-logo"><span class="uni-name">UNDIP</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/0ea5e9/ffffff?text=ITS" alt="ITS" class="uni-logo"><span class="uni-name">ITS</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/f59e0b/ffffff?text=UNAIR" alt="UNAIR" class="uni-logo"><span class="uni-name">UNAIR</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/3b82f6/ffffff?text=UNS" alt="UNS" class="uni-logo"><span class="uni-name">UNS</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/1d4ed8/ffffff?text=UB" alt="UB" class="uni-logo"><span class="uni-name">Brawijaya</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/eab308/000000?text=UNSOED" alt="UNSOED" class="uni-logo"><span class="uni-name">UNSOED</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/4338ca/ffffff?text=UNPAD" alt="UNPAD" class="uni-logo"><span class="uni-name">UNPAD</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/FFD700/000000?text=UI" alt="UI" class="uni-logo"><span class="uni-name">Univ. Indonesia</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/f3f4f6/1f2937?text=UGM" alt="UGM" class="uni-logo"><span class="uni-name">UGM</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/2563eb/ffffff?text=ITB" alt="ITB" class="uni-logo"><span class="uni-name">ITB</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/1e3a8a/ffffff?text=UNDIP" alt="UNDIP" class="uni-logo"><span class="uni-name">UNDIP</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/0ea5e9/ffffff?text=ITS" alt="ITS" class="uni-logo"><span class="uni-name">ITS</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/f59e0b/ffffff?text=UNAIR" alt="UNAIR" class="uni-logo"><span class="uni-name">UNAIR</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/3b82f6/ffffff?text=UNS" alt="UNS" class="uni-logo"><span class="uni-name">UNS</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/1d4ed8/ffffff?text=UB" alt="UB" class="uni-logo"><span class="uni-name">Brawijaya</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/eab308/000000?text=UNSOED" alt="UNSOED" class="uni-logo"><span class="uni-name">UNSOED</span></div>
-                    <div class="uni-item"><img src="https://placehold.co/150x150/4338ca/ffffff?text=UNPAD" alt="UNPAD" class="uni-logo"><span class="uni-name">UNPAD</span></div>
+                    <?php if ($universities_query->have_posts()) : ?>
+                        <?php
+                        $uni_items = [];
+                        while ($universities_query->have_posts()) :
+                            $universities_query->the_post();
+                            $logo_url   = get_the_post_thumbnail_url(get_the_ID(), 'medium');
+                            $name       = get_the_title();
+                            $short_name = get_post_meta(get_the_ID(), '_uni_short_name', true) ?: $name;
+                            $uni_url    = get_post_meta(get_the_ID(), '_uni_url', true);
+                            if (!$logo_url) {
+                                continue;
+                            }
+                            $uni_items[] = [
+                                'logo'  => $logo_url,
+                                'name'  => $name,
+                                'short' => $short_name,
+                                'url'   => $uni_url,
+                            ];
+                        endwhile;
+                        wp_reset_postdata();
+                        ?>
+
+                        <?php if (!empty($uni_items)) : ?>
+                            <?php for ($loop = 0; $loop < 2; $loop++) : ?>
+                                <?php foreach ($uni_items as $uni) : ?>
+                                    <div class="uni-item">
+                                        <?php if (!empty($uni['url'])) : ?>
+                                            <a href="<?php echo esc_url($uni['url']); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr($uni['name']); ?>">
+                                                <img src="<?php echo esc_url($uni['logo']); ?>" alt="<?php echo esc_attr($uni['name']); ?>" class="uni-logo" loading="lazy">
+                                            </a>
+                                        <?php else : ?>
+                                            <img src="<?php echo esc_url($uni['logo']); ?>" alt="<?php echo esc_attr($uni['name']); ?>" class="uni-logo" loading="lazy">
+                                        <?php endif; ?>
+                                        <span class="uni-name"><?php echo esc_html($uni['short']); ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endfor; ?>
+                        <?php else : ?>
+                            <div class="uni-item" style="opacity:1;filter:none;cursor:default;">
+                                <div class="uni-logo" style="display:flex;align-items:center;justify-content:center;border:1px dashed var(--gray-300);background:#fff;border-radius:var(--radius-md);color:var(--gray-400);">No Logo</div>
+                                <span class="uni-name" style="opacity:1;transform:none;">Belum ada logo universitas</span>
+                            </div>
+                        <?php endif; ?>
+                    <?php else : ?>
+                        <div class="uni-item" style="opacity:1;filter:none;cursor:default;">
+                            <div class="uni-logo" style="display:flex;align-items:center;justify-content:center;border:1px dashed var(--gray-300);background:#fff;border-radius:var(--radius-md);color:var(--gray-400);">No Logo</div>
+                            <span class="uni-name" style="opacity:1;transform:none;">Belum ada logo universitas</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="cta-bg"></div>
-        <div class="container cta-content">
-            <h2 data-aos="fade-up">Siap Menjadi Bagian dari Keluarga Besar SMANSA?</h2>
-            <p data-aos="fade-up" data-aos-delay="100">Penerimaan Peserta Didik Baru (PPDB) Tahun Ajaran 2026/2027 segera dibuka. Persiapkan dirimu sekarang!</p>
-            
-            <div class="cta-countdown" data-aos="fade-up" data-aos-delay="200">
-                <span>Pendaftaran Dibuka Dalam:</span>
-                <div class="countdown-timer" id="countdown">
-                    <!-- JS Countdown -->
-                </div>
-            </div>
-            
-            <div class="cta-buttons" data-aos="fade-up" data-aos-delay="300">
-                <a href="ppdb.html" class="btn btn-lg btn-accent">
-                    <i class="fas fa-user-plus"></i> Daftar PPDB Online
-                </a>
-                <a href="panduan.html" class="btn btn-lg btn-outline-white">
-                    <i class="fas fa-book"></i> Unduh Panduan
-                </a>
-            </div>
+    <!-- ===================== SPMB SECTION ===================== -->
+    <?php
+    // ── Read SPMB options ─────────────────────────────────────────────────
+    $spmb_year         = get_option( 'sman1_spmb_year', '2026/2027' );
+    $spmb_target       = get_option( 'sman1_spmb_target_date', '' );
+    $spmb_reg_start    = get_option( 'sman1_spmb_reg_start', '' );
+    $spmb_reg_end      = get_option( 'sman1_spmb_reg_end', '' );
+    $spmb_url          = get_option( 'sman1_spmb_url', '#' );
+    $spmb_guide_url    = get_option( 'sman1_spmb_guide_url', '#' );
+    $spmb_quota        = get_option( 'sman1_spmb_quota', '' );
+    $spmb_status_open  = get_option( 'sman1_spmb_status_open', 'Pendaftaran Dibuka' );
+    $spmb_status_closed= get_option( 'sman1_spmb_status_closed', 'Pendaftaran Ditutup' );
+    $spmb_feats_raw    = get_option( 'sman1_spmb_features',
+        "Proses pendaftaran 100% online\nSeleksi transparan dan akuntabel\nBeasiswa dan program unggulan tersedia\nKonfirmasi pendaftaran via WhatsApp"
+    );
+
+    // ── Determine status ──────────────────────────────────────────────────
+    $today         = current_time( 'Y-m-d' );
+    $is_after_end  = $spmb_reg_end   && $today > $spmb_reg_end;
+    $is_before_start = $spmb_reg_start && $today < $spmb_reg_start;
+
+    if ( $is_after_end ) {
+        $spmb_badge_class = 'spmb-badge-closed';
+        $spmb_badge_label = $spmb_status_closed;
+        $spmb_badge_icon  = 'fas fa-times-circle';
+        $spmb_btn_disabled = true;
+    } elseif ( $is_before_start ) {
+        $spmb_badge_class = 'spmb-badge-soon';
+        $spmb_badge_label = 'Segera Dibuka';
+        $spmb_badge_icon  = 'fas fa-clock';
+        $spmb_btn_disabled = true;
+    } else {
+        $spmb_badge_class = 'spmb-badge-open';
+        $spmb_badge_label = $spmb_status_open;
+        $spmb_badge_icon  = 'fas fa-check-circle';
+        $spmb_btn_disabled = false;
+    }
+
+    $spmb_features = array_filter( array_map( 'trim', explode( "\n", $spmb_feats_raw ) ) );
+
+    // ── Countdown target timestamp (ms) for JS ────────────────────────────
+    $spmb_target_ms = $spmb_target ? strtotime( $spmb_target ) * 1000 : 0;
+    ?>
+
+    <section class="spmb-section" id="spmb">
+
+        <!-- Layered background -->
+        <div class="spmb-bg" aria-hidden="true"></div>
+        <div class="spmb-shapes" aria-hidden="true">
+            <span class="spmb-shape spmb-shape-1"></span>
+            <span class="spmb-shape spmb-shape-2"></span>
+            <span class="spmb-shape spmb-shape-3"></span>
         </div>
+
+        <div class="container spmb-inner">
+
+            <!-- ── LEFT: Text + Features + Buttons ── -->
+            <div class="spmb-content" data-aos="fade-right">
+
+                <span class="spmb-badge <?php echo esc_attr( $spmb_badge_class ); ?>">
+                    <i class="<?php echo esc_attr( $spmb_badge_icon ); ?>"></i>
+                    <?php echo esc_html( $spmb_badge_label ); ?>
+                </span>
+
+                <h2 class="spmb-title">
+                    Siap Menjadi Bagian dari<br>
+                    <span>Keluarga Besar SMANSA?</span>
+                </h2>
+
+                <p class="spmb-desc">
+                    Sistem Penerimaan Murid Baru (SPMB) Tahun Ajaran
+                    <strong><?php echo esc_html( $spmb_year ); ?></strong>
+                    segera dibuka. Wujudkan impianmu bersama kami!
+                </p>
+
+                <?php if ( ! empty( $spmb_features ) ) : ?>
+                <ul class="spmb-features">
+                    <?php foreach ( $spmb_features as $feat ) : ?>
+                    <li>
+                        <span class="spmb-feat-icon" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        <?php echo esc_html( $feat ); ?>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php endif; ?>
+
+                <div class="spmb-buttons">
+                    <a href="<?php echo esc_url( $spmb_url ?: '#' ); ?>"
+                       class="btn btn-lg spmb-btn-primary<?php echo $spmb_btn_disabled ? ' spmb-btn-disabled' : ''; ?>"
+                       <?php if ( $spmb_btn_disabled ) echo 'aria-disabled="true" tabindex="-1"'; ?>
+                       <?php if ( ! $spmb_btn_disabled && $spmb_url && $spmb_url !== '#' ) echo 'target="_blank" rel="noopener"'; ?>>
+                        <i class="fas fa-user-plus"></i>
+                        Daftar SPMB Online
+                    </a>
+                    <a href="<?php echo esc_url( $spmb_guide_url ?: '#' ); ?>"
+                       class="btn btn-lg spmb-btn-outline"
+                       <?php if ( $spmb_guide_url && $spmb_guide_url !== '#' ) echo 'target="_blank" rel="noopener"'; ?>>
+                        <i class="fas fa-file-download"></i>
+                        Unduh Panduan
+                    </a>
+                </div>
+            </div><!-- / .spmb-content -->
+
+            <!-- ── RIGHT: Countdown Card ── -->
+            <div class="spmb-countdown-wrap" data-aos="fade-left" data-aos-delay="150">
+                <div class="spmb-countdown-card">
+
+                    <!-- Decorative rings -->
+                    <div class="spmb-card-ring spmb-ring-1" aria-hidden="true"></div>
+                    <div class="spmb-card-ring spmb-ring-2" aria-hidden="true"></div>
+
+                    <div class="spmb-countdown-header">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span>Pendaftaran Dibuka Dalam</span>
+                    </div>
+
+                    <div class="spmb-timer" id="spmbCountdown">
+                        <div class="spmb-timer-item">
+                            <span class="spmb-timer-num" id="spmbDays">00</span>
+                            <span class="spmb-timer-label">Hari</span>
+                        </div>
+                        <div class="spmb-timer-sep" aria-hidden="true">:</div>
+                        <div class="spmb-timer-item">
+                            <span class="spmb-timer-num" id="spmbHours">00</span>
+                            <span class="spmb-timer-label">Jam</span>
+                        </div>
+                        <div class="spmb-timer-sep" aria-hidden="true">:</div>
+                        <div class="spmb-timer-item">
+                            <span class="spmb-timer-num" id="spmbMinutes">00</span>
+                            <span class="spmb-timer-label">Menit</span>
+                        </div>
+                        <div class="spmb-timer-sep" aria-hidden="true">:</div>
+                        <div class="spmb-timer-item">
+                            <span class="spmb-timer-num" id="spmbSeconds">00</span>
+                            <span class="spmb-timer-label">Detik</span>
+                        </div>
+                    </div><!-- / .spmb-timer -->
+
+                    <div class="spmb-countdown-footer">
+                        <?php if ( $spmb_reg_start ) : ?>
+                        <div class="spmb-date-info">
+                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                            <span>
+                                Buka: <?php echo date_i18n( 'd M Y', strtotime( $spmb_reg_start ) ); ?>
+                                <?php if ( $spmb_reg_end ) : ?>
+                                    &ndash; <?php echo date_i18n( 'd M Y', strtotime( $spmb_reg_end ) ); ?>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( $spmb_quota ) : ?>
+                        <div class="spmb-quota">
+                            <i class="fas fa-users" aria-hidden="true"></i>
+                            <span>Kuota: <strong><?php echo esc_html( $spmb_quota ); ?></strong> Siswa</span>
+                        </div>
+                        <?php endif; ?>
+                    </div><!-- / .spmb-countdown-footer -->
+
+                </div><!-- / .spmb-countdown-card -->
+            </div><!-- / .spmb-countdown-wrap -->
+
+        </div><!-- / .spmb-inner -->
     </section>
+
+    <script>
+    window.spmbConfig = {
+        targetDate : <?php echo (int) $spmb_target_ms; ?>,
+        isClosed   : <?php echo $is_after_end ? 'true' : 'false'; ?>
+    };
+    </script>
+
+    <!-- ===================== GALLERY LIGHTBOX ===================== -->
+    <div class="gallery-lightbox" id="galleryLightbox" role="dialog" aria-modal="true" aria-label="Preview Foto" style="display:none;">
+        <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+        <div class="lightbox-container" role="document">
+            <!-- Close -->
+            <button class="lightbox-close" id="lightboxClose" aria-label="Tutup preview">
+                <i class="fas fa-times"></i>
+            </button>
+            <!-- Prev -->
+            <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Foto sebelumnya">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <!-- Next -->
+            <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Foto berikutnya">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <!-- Image -->
+            <div class="lightbox-image-wrap">
+                <div class="lightbox-spinner" id="lightboxSpinner">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                </div>
+                <img src="" alt="" id="lightboxImg" class="lightbox-img">
+            </div>
+            <!-- Caption + Counter -->
+            <div class="lightbox-footer">
+                <span class="lightbox-caption" id="lightboxCaption"></span>
+                <span class="lightbox-counter" id="lightboxCounter"></span>
+            </div>
+            <!-- Thumbnail strip -->
+            <div class="lightbox-thumbs" id="lightboxThumbs"></div>
+        </div>
+    </div>
 
 <?php get_footer(); ?>

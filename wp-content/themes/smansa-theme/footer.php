@@ -24,32 +24,78 @@
                         </div>
                     </div>
 
-                    <!-- Footer Links (Menu) -->
+                    <!-- Footer Collaboration Links (CPT: collaboration_link) -->
                     <div class="footer-col">
-                        <h4>Tautan Cepat</h4>
+                        <h4>Kolaborasi &amp; Mitra</h4>
                         <?php
-                        wp_nav_menu(array(
-                            'theme_location' => 'footer_menu',
-                            'container'      => false,
-                            'menu_class'     => 'footer-links',
-                            'fallback_cb'    => false,
-                        ));
+                        $collab_query = new WP_Query( array(
+                            'post_type'      => 'collaboration_link',
+                            'posts_per_page' => 10,
+                            'orderby'        => 'menu_order',
+                            'order'          => 'ASC',
+                            'post_status'    => 'publish',
+                        ) );
+                        if ( $collab_query->have_posts() ) :
                         ?>
+                        <ul class="footer-links">
+                            <?php while ( $collab_query->have_posts() ) : $collab_query->the_post();
+                                $c_url  = get_post_meta( get_the_ID(), '_collab_url',  true );
+                                $c_desc = get_post_meta( get_the_ID(), '_collab_desc', true );
+                                $c_icon = get_post_meta( get_the_ID(), '_collab_icon', true ) ?: 'fas fa-link';
+                            ?>
+                            <li>
+                                <a href="<?php echo esc_url( $c_url ?: '#' ); ?>"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   <?php if ( $c_desc ) echo 'title="' . esc_attr( $c_desc ) . '"'; ?>>
+                                    <i class="<?php echo esc_attr( $c_icon ); ?> footer-collab-icon" aria-hidden="true"></i>
+                                    <?php the_title(); ?>
+                                </a>
+                            </li>
+                            <?php endwhile; wp_reset_postdata(); ?>
+                        </ul>
+                        <?php else : ?>
+                        <p class="footer-empty-note">Belum ada mitra. Tambahkan lewat <a href="<?php echo admin_url('edit.php?post_type=collaboration_link'); ?>">WP Admin &rarr; Kolaborasi</a>.</p>
+                        <?php endif; ?>
                     </div>
 
-                    <!-- Footer Services (Widget Area) -->
+                    <!-- Footer Digital Services (synced with CPT: quick_access_card) -->
                     <div class="footer-col">
-                        <?php if (is_active_sidebar('footer-1')) : ?>
-                            <?php dynamic_sidebar('footer-1'); ?>
+                        <h4>Layanan Digital</h4>
+                        <?php
+                        $qa_footer_query = new WP_Query( array(
+                            'post_type'      => 'quick_access_card',
+                            'posts_per_page' => 8,
+                            'orderby'        => 'menu_order',
+                            'order'          => 'ASC',
+                            'post_status'    => 'publish',
+                        ) );
+                        if ( $qa_footer_query->have_posts() ) :
+                        ?>
+                        <ul class="footer-links">
+                            <?php while ( $qa_footer_query->have_posts() ) : $qa_footer_query->the_post();
+                                $qa_id    = get_the_ID();
+                                $qa_url   = get_post_meta( $qa_id, 'qa_url', true )   ?: '#';
+                                $qa_icon  = get_post_meta( $qa_id, 'qa_icon', true )  ?: 'fas fa-link';
+                                $qa_title = get_post_meta( $qa_id, 'qa_title', true ) ?: get_the_title();
+                            ?>
+                            <li>
+                                <a href="<?php echo esc_url( $qa_url ); ?>"
+                                   <?php if ( $qa_url !== '#' ) echo 'target="_blank" rel="noopener"'; ?>>
+                                    <i class="<?php echo esc_attr( $qa_icon ); ?> footer-service-icon" aria-hidden="true"></i>
+                                    <?php echo esc_html( $qa_title ); ?>
+                                </a>
+                            </li>
+                            <?php endwhile; wp_reset_postdata(); ?>
+                        </ul>
                         <?php else : ?>
-                            <h4>Layanan Digital</h4>
-                            <ul class="footer-links">
-                                <li><a href="#"><i class="fas fa-chevron-right"></i> E-Learning</a></li>
-                                <li><a href="#"><i class="fas fa-chevron-right"></i> Ujian Online</a></li>
-                                <li><a href="#"><i class="fas fa-chevron-right"></i> Portal Siswa</a></li>
-                                <li><a href="#"><i class="fas fa-chevron-right"></i> Perpustakaan</a></li>
-                                <li><a href="#"><i class="fas fa-chevron-right"></i> Alumni Portal</a></li>
-                            </ul>
+                        <ul class="footer-links">
+                            <li><a href="#"><i class="fas fa-laptop-code footer-service-icon"></i> E-Learning</a></li>
+                            <li><a href="#"><i class="fas fa-edit footer-service-icon"></i> Ujian Online</a></li>
+                            <li><a href="#"><i class="fas fa-user-circle footer-service-icon"></i> Portal Siswa</a></li>
+                            <li><a href="#"><i class="fas fa-book-reader footer-service-icon"></i> Perpustakaan</a></li>
+                            <li><a href="#"><i class="fas fa-user-plus footer-service-icon"></i> SPMB Online</a></li>
+                        </ul>
                         <?php endif; ?>
                     </div>
 
@@ -85,9 +131,17 @@
                 <div class="footer-bottom-content">
                     <p>&copy; <?php echo date('Y'); ?> SMA Negeri 1 Purwokerto. All rights reserved.</p>
                     <div class="footer-bottom-links">
-                        <a href="#">Kebijakan Privasi</a>
-                        <a href="#">Syarat & Ketentuan</a>
-                        <a href="#">Sitemap</a>
+                        <?php
+                        $fp_kp  = get_pages( array( 'meta_key' => '_wp_page_template', 'meta_value' => 'page-kebijakan-privasi.php', 'number' => 1 ) );
+                        $fp_sk  = get_pages( array( 'meta_key' => '_wp_page_template', 'meta_value' => 'page-syarat-ketentuan.php',  'number' => 1 ) );
+                        $fp_sm  = get_pages( array( 'meta_key' => '_wp_page_template', 'meta_value' => 'page-sitemap.php',            'number' => 1 ) );
+                        $url_kp = $fp_kp ? get_permalink( $fp_kp[0]->ID ) : home_url( '/kebijakan-privasi/' );
+                        $url_sk = $fp_sk ? get_permalink( $fp_sk[0]->ID ) : home_url( '/syarat-ketentuan/' );
+                        $url_sm = $fp_sm ? get_permalink( $fp_sm[0]->ID ) : home_url( '/sitemap/' );
+                        ?>
+                        <a href="<?php echo esc_url( $url_kp ); ?>">Kebijakan Privasi</a>
+                        <a href="<?php echo esc_url( $url_sk ); ?>">Syarat &amp; Ketentuan</a>
+                        <a href="<?php echo esc_url( $url_sm ); ?>">Sitemap</a>
                     </div>
                 </div>
             </div>
@@ -100,7 +154,8 @@
     </button>
 
     <!-- ===================== WHATSAPP FLOAT ===================== -->
-    <a href="https://wa.me/62281636293" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+    <?php $foot_wa = preg_replace( '/[^0-9]/', '', get_theme_mod( 'contact_whatsapp', '62281636293' ) ); ?>
+    <a href="https://wa.me/<?php echo esc_attr( $foot_wa ); ?>" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         <i class="fab fa-whatsapp"></i>
         <span class="tooltip">Hubungi via WhatsApp</span>
     </a>
